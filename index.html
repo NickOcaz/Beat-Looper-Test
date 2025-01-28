@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Audio Loop</title>
+</head>
+<body>
+    <select id="audioSelect">
+        <option value="beat1.mp3">Loop 1</option>
+        <option value="beat2.mp3">Loop 2</option>
+        <option value="beat3.mp3">Loop 3</option>
+    </select>
+    <button id="playButton">Play Audio</button>
+    <button id="stopButton">Stop Audio</button>
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let source;
+
+        document.getElementById('playButton').addEventListener('click', function() {
+            if (!source || audioCtx.state === 'suspended') {
+                const audioFilePath = document.getElementById('audioSelect').value;
+
+                fetch(audioFilePath)
+                    .then(response => response.arrayBuffer())
+                    .then(buffer => audioCtx.decodeAudioData(buffer))
+                    .then(audioBuffer => {
+                        source = audioCtx.createBufferSource();
+                        source.buffer = audioBuffer;
+                        source.loop = true;
+
+                        source.connect(audioCtx.destination);
+                        source.start(0);
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        });
+
+        document.getElementById('stopButton').addEventListener('click', function() {
+            if (source) {
+                source.stop();
+                source = null;
+            }
+        });
+
+        document.getElementById('audioSelect').addEventListener('change', function() {
+            if (source) {
+                source.stop();
+                source = null;
+            }
+        });
+    </script>
+</body>
+</html>
